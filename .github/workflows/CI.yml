@@ -46,8 +46,8 @@ jobs:
             const commit_date = Date.parse(commit_response.data.committer.date);
             const push_date = Date.parse(pulls_response.data.head.repo.pushed_at);
 
-            # Commit could be dated before comment but pushed between comment and workflow,
-            # so we check that the push was also before the comment
+            // Commit could be dated before comment but pushed between comment and workflow,
+            // so we check that the push was also before the comment
             if (commit_date.getTime() < comment_date.getTime()) && (push_date.getTime() < comment_date.getTime()) {
               return {"commit_sha": commit_sha, "repo": pulls_response.data.head.repo.full_name, "success": true};
             } else {
