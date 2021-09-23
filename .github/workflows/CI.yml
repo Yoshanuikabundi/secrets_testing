@@ -36,7 +36,7 @@ jobs:
 
             const commit_sha = pulls_response.data.head.sha;
 
-            const commit_response = await github.commits.get({
+            const commit_response = await github.git.getCommit({
               owner: pulls_response.data.head.repo.owner.login,
               repo: pulls_response.data.head.repo.name,
               commit_sha: commit_sha
