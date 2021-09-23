@@ -90,5 +90,8 @@ jobs:
         shell: bash -l {0}
         env:
           REPO_SECRET: ${{ secrets.REPO_SECRET }}
+          COMMIT_SHA: ${{ needs.get_commit.outputs.ref.commit_sha }}
+          COMMIT_REPO: ${{ needs.get_commit.outputs.ref.repo }}
         run: |
+          echo "Grabbed commit ${COMMIT_SHA} from ${COMMIT_REPO}"
           echo "The secret is '${REPO_SECRET}'"
