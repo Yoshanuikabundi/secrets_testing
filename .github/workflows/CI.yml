@@ -42,7 +42,7 @@ jobs:
               commit_sha: commit_sha
             });
 
-            const comment_date = Date.parse(${{ github.event.comment.created_at }});
+            const comment_date = Date.parse(context.payload.comment.created_at);
             const commit_date = Date.parse(commit_response.data.committer.date);
             const push_date = Date.parse(pulls_response.data.head.repo.pushed_at);
 
