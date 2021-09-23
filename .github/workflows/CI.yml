@@ -1,0 +1,89 @@
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  get_commit:
+    if: ${{ github.event.issue.pull_request }} && startsWith( github.event.comment.body, '/trustcommit ' )
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.get_ref.outputs.result }}
+    steps:
+      - name: Acknowledge command
+        uses: actions/github-script@v3
+        with:
+          script: |
+            github.reactions.createForIssueComment({
+              comment_id: context.payload.comment.id,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              content: 'eyes',
+            });
+      - id: get_ref
+        name: Get branch name
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const pulls_response = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.issue.number
+            });
+
+            const commit_sha = pulls_response.data.head.sha;
+
+            const commit_response = await github.commits.get({
+              owner: pulls_response.data.head.repo.owner.login,
+              repo: pulls_response.data.head.repo.name,
+              commit_sha: commit_sha
+            });
+
+            const comment_date = Date.parse(${{ github.event.comment.created_at }});
+            const commit_date = Date.parse(commit_response.data.committer.date);
+            const push_date = Date.parse(pulls_response.data.head.repo.pushed_at);
+
+            # Commit could be dated before comment but pushed between comment and workflow,
+            # so we check that the push was also before the comment
+            if (commit_date.getTime() < comment_date.getTime()) && push_date.getTime() < comment_date.getTime()) {
+              return {"commit_sha": commit_sha, "repo": pulls_response.data.head.repo.full_name};
+            } else {
+              return null;
+            }
+
+      - name: Leave a comment if a safe commit couldn't be found
+        if: ! ${{ steps.get_ref.outputs.result }}
+        uses: actions/github-script@v3
+        with:
+          script: |
+            github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number
+              body: "Couldn't pick the last commit safely. It might've been pushed or dated after your comment. Please check that you trust the last commit and try again."
+            });
+
+
+  run_ci:
+    needs: get_commit
+    if: needs.get_commit.outputs.ref
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+
+    steps:
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.get_commit.outputs.ref.commit_sha }}
+          repo: ${{ needs.get_commit.outputs.ref.repo }}
+
+      - name: Run CI with secrets
+        shell: bash -l {0}
+        run: |
+          echo "The secret is '${REPO_SECRET}'"
