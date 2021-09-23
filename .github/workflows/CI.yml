@@ -48,7 +48,7 @@ jobs:
 
             // Commit could be dated before comment but pushed between comment and workflow,
             // so we check that the push was also before the comment
-            if (commit_date.getTime() < comment_date.getTime() && push_date.getTime() < comment_date.getTime()) {
+            if (commit_date < comment_date && push_date < comment_date {
               return {"commit_sha": commit_sha, "repo": pulls_response.data.head.repo.full_name, "success": true};
             } else {
               return {"success": false};
