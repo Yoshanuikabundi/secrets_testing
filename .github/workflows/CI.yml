@@ -8,7 +8,7 @@ on:
 
 jobs:
   get_commit:
-    if: ${{ github.event.issue.pull_request }} && startsWith( github.event.comment.body, '/trustcommit ' )
+    if: ${{ github.event.issue.pull_request }} && contains( github.event.comment.body, '/trustcommit' )
     runs-on: ubuntu-latest
     outputs:
       ref: ${{ steps.get_ref.outputs.result }}
