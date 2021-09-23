@@ -84,9 +84,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.get_commit.outputs.ref.commit_sha }}
-          repo: ${{ needs.get_commit.outputs.ref.repo }}
+          repository: ${{ needs.get_commit.outputs.ref.repo }}
 
       - name: Run CI with secrets
         shell: bash -l {0}
+        env:
+          REPO_SECRET: ${{ secrets.REPO_SECRET }}
         run: |
           echo "The secret is '${REPO_SECRET}'"
