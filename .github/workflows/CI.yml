@@ -27,7 +27,6 @@ jobs:
         name: Get branch name
         uses: actions/github-script@v3
         with:
-          result-encoding: string
           script: |
             const pulls_response = await github.pulls.get({
               owner: context.repo.owner,
@@ -68,12 +67,22 @@ jobs:
             return out
 
       - name: Log result
-        shell: bash -l {0}
+        uses: actions/github-script@v3
         env:
-          ref_result: ${{ steps.getref.outputs.result }}
-        run: |
-          echo "Grabbed commit ${COMMIT_SHA} from ${COMMIT_REPO}"
-          echo "The result is '${ref_result}'"
+          STEPS: ${{ steps }}
+          STEPS_GETREF: ${{ steps.getref }}
+          STEPS_GETREF_OUTPUTS: ${{ steps.getref.outputs }}
+          STEPS_GETREF_OUTPUTS_RESULT: ${{ steps.getref.outputs.result }}
+        with:
+          script: |
+            console.log("steps")
+            console.log(context.steps)
+            console.log("steps.getref")
+            console.log(context.steps.getref)
+            console.log("steps.getref.outputs")
+            console.log(context.steps.getref.outputs)
+            console.log("steps.getref.outputs.result")
+            console.log(context.steps.getref.outputs.result)
 
 
       - name: Leave a comment if a safe commit couldn't be found
