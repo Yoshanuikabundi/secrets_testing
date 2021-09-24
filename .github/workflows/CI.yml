@@ -27,6 +27,7 @@ jobs:
         name: Get branch name
         uses: actions/github-script@v3
         with:
+          result-encoding: json
           script: |
             const pulls_response = await github.pulls.get({
               owner: context.repo.owner,
