@@ -11,7 +11,9 @@ jobs:
     if: ${{ github.event.issue.pull_request }} && contains( github.event.comment.body, '/trustcommit' )
     runs-on: ubuntu-latest
     outputs:
-      ref: ${{ fromJSON(steps.getref.outputs.result) }}
+      commit_sha: ${{ fromJSON(steps.getref.outputs.result).commit_sha }}
+      repo: ${{ fromJSON(steps.getref.outputs.result).repo }}
+      success: ${{ fromJSON(steps.getref.outputs.result).success }}
     steps:
       - name: Acknowledge command
         uses: actions/github-script@v3
@@ -57,9 +59,9 @@ jobs:
             // so we check that the push was also before the comment
             let out;
             if (commit_date < comment_date && push_date < comment_date) {
-              out = {commit_sha: commit_sha, repo: pulls_response.data.head.repo.full_name, failed: false};
+              out = {commit_sha: commit_sha, repo: pulls_response.data.head.repo.full_name, success: true};
             } else {
-              out = {failed: true};
+              out = {success: false};
             }
 
             console.log("out")
@@ -102,7 +104,7 @@ jobs:
 
 
       - name: Leave a comment if a safe commit couldn't be found
-        if: fromJSON(steps.getref.outputs.result).failed
+        if: ${{! fromJSON(steps.getref.outputs.result).success }}
         uses: actions/github-script@v3
         with:
           script: |
@@ -119,7 +121,7 @@ jobs:
 
   run_ci:
     needs: get_commit
-    if: needs.get_commit.outputs.ref
+    if: needs.get_commit.outputs.success
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -133,15 +135,15 @@ jobs:
       - name: Checkout PR branch
         uses: actions/checkout@v2
         with:
-          ref: ${{ needs.get_commit.outputs.ref.commit_sha }}
-          repository: ${{ needs.get_commit.outputs.ref.repo }}
+          ref: ${{ needs.get_commit.outputs.commit_sha }}
+          repository: ${{ needs.get_commit.outputs.repo }}
 
       - name: Run CI with secrets
         shell: bash -l {0}
         env:
           REPO_SECRET: ${{ secrets.REPO_SECRET }}
-          COMMIT_SHA: ${{ needs.get_commit.outputs.ref.commit_sha  }}
-          COMMIT_REPO: ${{ needs.get_commit.outputs.ref.repo }}
+          COMMIT_SHA: ${{ needs.get_commit.outputs.commit_sha  }}
+          COMMIT_REPO: ${{ needs.get_commit.outputs.repo }}
         run: |
           echo "Grabbed commit ${COMMIT_SHA} from ${COMMIT_REPO}"
           echo "The secret is '${REPO_SECRET}'"
