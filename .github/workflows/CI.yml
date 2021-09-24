@@ -34,6 +34,9 @@ jobs:
               pull_number: context.payload.issue.number
             });
 
+            console.log("pulls_response")
+            console.log(pulls_response)
+
             const commit_sha = pulls_response.data.head.sha;
 
             const commit_response = await github.git.getCommit({
@@ -42,17 +45,26 @@ jobs:
               commit_sha: commit_sha
             });
 
+            console.log("commit_response")
+            console.log(commit_response)
+
             const comment_date = Date.parse(context.payload.comment.created_at);
             const commit_date = Date.parse(commit_response.data.committer.date);
             const push_date = Date.parse(pulls_response.data.head.repo.pushed_at);
 
             // Commit could be dated before comment but pushed between comment and workflow,
             // so we check that the push was also before the comment
+            let out;
             if (commit_date < comment_date && push_date < comment_date) {
-              return {"commit_sha": commit_sha, "repo": pulls_response.data.head.repo.full_name, "success": true};
+              out = {"commit_sha": commit_sha, "repo": pulls_response.data.head.repo.full_name, "success": true};
             } else {
-              return {"success": false};
+              out = {"success": false};
             }
+
+            console.log("out")
+            console.log(out)
+
+            return out
 
       - name: Leave a comment if a safe commit couldn't be found
         if: steps.get_ref.outputs.result.success
@@ -90,7 +102,7 @@ jobs:
         shell: bash -l {0}
         env:
           REPO_SECRET: ${{ secrets.REPO_SECRET }}
-          COMMIT_SHA: ${{ needs.get_commit.outputs.ref.commit_sha }}
+          COMMIT_SHA: ${{ needs.get_commit.outputs.ref.commit_sha  }}
           COMMIT_REPO: ${{ needs.get_commit.outputs.ref.repo }}
         run: |
           echo "Grabbed commit ${COMMIT_SHA} from ${COMMIT_REPO}"
