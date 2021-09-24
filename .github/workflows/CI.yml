@@ -57,9 +57,9 @@ jobs:
             // so we check that the push was also before the comment
             let out;
             if (commit_date < comment_date && push_date < comment_date) {
-              out = {commit_sha: commit_sha, repo: pulls_response.data.head.repo.full_name, success: true};
+              out = {commit_sha: commit_sha, repo: pulls_response.data.head.repo.full_name, failed: false};
             } else {
-              out = {success: false};
+              out = {failed: true};
             }
 
             console.log("out")
@@ -102,7 +102,7 @@ jobs:
 
 
       - name: Leave a comment if a safe commit couldn't be found
-        if: ! fromJSON(steps.getref.outputs.result).success
+        if: fromJSON(steps.getref.outputs.result).failed
         uses: actions/github-script@v3
         with:
           script: |
