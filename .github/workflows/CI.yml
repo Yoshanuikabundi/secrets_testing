@@ -69,10 +69,10 @@ jobs:
       - name: Log result
         uses: actions/github-script@v3
         env:
-          STEPS: ${{ steps }}
-          STEPS_GETREF: ${{ steps.getref }}
-          STEPS_GETREF_OUTPUTS: ${{ steps.getref.outputs }}
-          STEPS_GETREF_OUTPUTS_RESULT: ${{ steps.getref.outputs.result }}
+          STEPS: ${{ toJSON(steps) }}
+          STEPS_GETREF: ${{ toJSON(steps.getref) }}
+          STEPS_GETREF_OUTPUTS: ${{ toJSON(steps.getref.outputs) }}
+          STEPS_GETREF_OUTPUTS_RESULT: ${{ toJSON(steps.getref.outputs.result) }}
         with:
           script: |
             console.log("steps")
