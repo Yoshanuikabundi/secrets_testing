@@ -85,6 +85,23 @@ jobs:
             console.log("steps.getref.outputs.result")
             console.log(process.env.STEPS_GETREF_OUTPUTS_RESULT)
 
+      - name: Run CI with secrets
+        shell: bash -l {0}
+        env:
+          STEPS: ${{ toJSON(steps) }}
+          STEPS_GETREF: ${{ toJSON(steps.getref) }}
+          STEPS_GETREF_OUTPUTS: ${{ toJSON(steps.getref.outputs) }}
+          STEPS_GETREF_OUTPUTS_RESULT: ${{ toJSON(steps.getref.outputs.result) }}
+          STEPS_GETREF_OUTPUTS_RESULT_FROMJSON: ${{ toJSON(fromJSON(steps.getref.outputs.result)) }}
+          STEPS_GETREF_OUTPUTS_RESULT_FROMJSON_NOTOJSON: ${{ fromJSON(steps.getref.outputs.result) }}
+        run: |
+          echo "toJSON(steps): ${STEPS}"
+          echo "toJSON(steps.getref) : ${STEPS_GETREF}"
+          echo "toJSON(steps.getref.outputs) : ${STEPS_GETREF_OUTPUTS}"
+          echo "toJSON(steps.getref.outputs.result): ${STEPS_GETREF_OUTPUTS_RESULT}"
+          echo "toJSON(fromJSON(steps.getref.outputs.result)): ${STEPS_GETREF_OUTPUTS_RESULT_FROMJSON}"
+          echo "fromJSON(steps.getref.outputs.result): ${STEPS_GETREF_OUTPUTS_RESULT_FROMJSON_NOTOJSON}"
+
 
       - name: Leave a comment if a safe commit couldn't be found
         if: steps.getref.outputs.result.success
