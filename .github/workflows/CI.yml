@@ -8,7 +8,7 @@ on:
 
 jobs:
   get_commit:
-    if: ${{ github.event.issue.pull_request }} && contains( github.event.comment.body, '/trustcommit' )
+    if: ${{ github.event.issue.pull_request }} && contains( github.event.comment.body, '/trustcommit' ) && contains(['Yoshanuikabundi'], github.event.comment.user.login)
     runs-on: ubuntu-latest
     outputs:
       commit_sha: ${{ fromJSON(steps.getref.outputs.result).commit_sha }}
@@ -37,9 +37,6 @@ jobs:
               pull_number: context.payload.issue.number
             });
 
-            console.log("pulls_response")
-            console.log(pulls_response)
-
             const commit_sha = pulls_response.data.head.sha;
 
             const commit_response = await github.git.getCommit({
@@ -47,9 +44,6 @@ jobs:
               repo: pulls_response.data.head.repo.name,
               commit_sha: commit_sha
             });
-
-            console.log("commit_response")
-            console.log(commit_response)
 
             const comment_date = Date.parse(context.payload.comment.created_at);
             const commit_date = Date.parse(commit_response.data.committer.date);
@@ -64,53 +58,13 @@ jobs:
               out = {success: false};
             }
 
-            console.log("out")
-            console.log(out)
-
             return out
-
-      - name: Log result
-        uses: actions/github-script@v3
-        env:
-          STEPS: ${{ toJSON(steps) }}
-          STEPS_GETREF: ${{ toJSON(steps.getref) }}
-          STEPS_GETREF_OUTPUTS: ${{ toJSON(steps.getref.outputs) }}
-          STEPS_GETREF_OUTPUTS_RESULT: ${{ toJSON(steps.getref.outputs.result) }}
-        with:
-          script: |
-            console.log("steps")
-            console.log(process.env.STEPS)
-            console.log("steps.getref")
-            console.log(process.env.STEPS_GETREF)
-            console.log("steps.getref.outputs")
-            console.log(process.env.STEPS_GETREF_OUTPUTS)
-            console.log("steps.getref.outputs.result")
-            console.log(process.env.STEPS_GETREF_OUTPUTS_RESULT)
-
-      - name: Log result with bash
-        shell: bash -l {0}
-        env:
-          STEPS: ${{ toJSON(steps) }}
-          STEPS_GETREF: ${{ toJSON(steps.getref) }}
-          STEPS_GETREF_OUTPUTS: ${{ toJSON(steps.getref.outputs) }}
-          STEPS_GETREF_OUTPUTS_RESULT: ${{ toJSON(steps.getref.outputs.result) }}
-          STEPS_GETREF_OUTPUTS_RESULT_FROMJSON: ${{ toJSON(fromJSON(steps.getref.outputs.result)) }}
-        run: |
-          echo "toJSON(steps): ${STEPS}"
-          echo "toJSON(steps.getref) : ${STEPS_GETREF}"
-          echo "toJSON(steps.getref.outputs) : ${STEPS_GETREF_OUTPUTS}"
-          echo "toJSON(steps.getref.outputs.result): ${STEPS_GETREF_OUTPUTS_RESULT}"
-          echo "toJSON(fromJSON(steps.getref.outputs.result)): ${STEPS_GETREF_OUTPUTS_RESULT_FROMJSON}"
-
 
       - name: Leave a comment if a safe commit couldn't be found
         if: ${{! fromJSON(steps.getref.outputs.result).success }}
         uses: actions/github-script@v3
         with:
           script: |
-            console.log("steps.getref.outputs.result")
-            console.log(steps.getref.outputs.result)
-
             github.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
