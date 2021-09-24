@@ -56,9 +56,9 @@ jobs:
             // so we check that the push was also before the comment
             let out;
             if (commit_date < comment_date && push_date < comment_date) {
-              out = {"commit_sha": commit_sha, "repo": pulls_response.data.head.repo.full_name, "success": true};
+              out = {commit_sha: commit_sha, repo: pulls_response.data.head.repo.full_name, success: true};
             } else {
-              out = {"success": false};
+              out = {success: false};
             }
 
             console.log("out")
