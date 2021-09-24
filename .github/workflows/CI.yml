@@ -11,7 +11,7 @@ jobs:
     if: ${{ github.event.issue.pull_request }} && contains( github.event.comment.body, '/trustcommit' )
     runs-on: ubuntu-latest
     outputs:
-      ref: ${{ steps.get_ref.outputs.result }}
+      ref: ${{ steps.getref.outputs.result }}
     steps:
       - name: Acknowledge command
         uses: actions/github-script@v3
@@ -23,7 +23,7 @@ jobs:
               repo: context.repo.repo,
               content: 'eyes',
             });
-      - id: get_ref
+      - id: getref
         name: Get branch name
         uses: actions/github-script@v3
         with:
@@ -66,11 +66,28 @@ jobs:
 
             return out
 
-      - name: Leave a comment if a safe commit couldn't be found
-        if: steps.get_ref.outputs.result.success
+      - name: Log result
         uses: actions/github-script@v3
         with:
           script: |
+            console.log("steps")
+            console.log(context.steps)
+            console.log("steps.getref")
+            console.log(context.steps.getref)
+            console.log("steps.getref.outputs")
+            console.log(context.steps.getref.outputs)
+            console.log("steps.getref.outputs.result")
+            console.log(context.steps.getref.outputs.result)
+
+
+      - name: Leave a comment if a safe commit couldn't be found
+        if: steps.getref.outputs.result.success
+        uses: actions/github-script@v3
+        with:
+          script: |
+            console.log("steps.getref.outputs.result")
+            console.log(steps.getref.outputs.result)
+
             github.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
