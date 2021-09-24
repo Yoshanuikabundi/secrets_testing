@@ -68,7 +68,7 @@ jobs:
             github.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.issue.number
+              issue_number: context.payload.issue.number,
               body: "Couldn't pick the last commit safely. It might've been pushed or dated after your comment. Please check that you trust the last commit and try again."
             });
 
